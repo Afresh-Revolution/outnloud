@@ -2,7 +2,6 @@
 
 import { FormEvent, useState } from "react";
 import { Flash } from "@/components/Flash";
-import { adminHomePath } from "@/lib/admin-host";
 import { useRouter } from "next/navigation";
 
 export function LoginForm() {
@@ -23,7 +22,7 @@ export function LoginForm() {
       });
       const body = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(body.error || "Could not sign in.");
-      router.replace(adminHomePath());
+      router.replace("/admin");
       router.refresh();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Could not sign in.");

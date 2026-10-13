@@ -1,9 +1,7 @@
 import type { Metadata } from "next";
 import { Anton, Caveat, DM_Sans } from "next/font/google";
-import { headers } from "next/headers";
 import { Footer } from "@/components/Footer";
 import { Header } from "@/components/Header";
-import { requestIsAdminHost } from "@/lib/admin-host";
 import { FESTIVAL } from "@/lib/festival";
 import "./globals.css";
 
@@ -24,25 +22,16 @@ export const metadata: Metadata = {
     : undefined,
 };
 
-export default async function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
-  const host = (await headers()).get("host");
-  const adminSite = requestIsAdminHost(host);
-
+export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="en" className={`${display.variable} ${body.variable} ${script.variable}`}>
       <body>
-        {adminSite ? (
-          <main id="content">{children}</main>
-        ) : (
-          <>
-            <a className="skip" href="#content">
-              Skip to content
-            </a>
-            <Header />
-            <main id="content">{children}</main>
-            <Footer />
-          </>
-        )}
+        <a className="skip" href="#content">
+          Skip to content
+        </a>
+        <Header />
+        <main id="content">{children}</main>
+        <Footer />
       </body>
     </html>
   );

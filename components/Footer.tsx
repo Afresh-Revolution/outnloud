@@ -12,7 +12,9 @@ export async function Footer() {
     <footer className="footer">
       <div className="wrap footer-grid">
         <div>
-          <div className="footer-brand">OUT N LOUD</div>
+          <Link href="/admin" className="footer-brand">
+            OUT N LOUD
+          </Link>
           <p>{FESTIVAL.manifesto}</p>
           <p>
             {FESTIVAL.dateLabel}
