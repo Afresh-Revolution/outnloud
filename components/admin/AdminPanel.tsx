@@ -4,6 +4,7 @@ import { FormEvent, useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Flash } from "@/components/Flash";
 import { PageLoader } from "@/components/PageLoader";
+import { adminLoginPath } from "@/lib/admin-host";
 import { naira } from "@/lib/format";
 import type { GalleryItem, Inquiry, LineupAct, Partner, Subscriber } from "@/lib/content";
 
@@ -31,7 +32,7 @@ async function api(url: string, options?: RequestInit) {
   const res = await fetch(url, options);
   const body = await res.json().catch(() => ({}));
   if (res.status === 401) {
-    window.location.href = "/admin/login";
+    window.location.href = adminLoginPath();
     throw new Error("Sign in again.");
   }
   if (!res.ok) throw new Error(body.error || "Request failed.");
@@ -184,7 +185,7 @@ export function AdminPanel() {
 
   async function logout() {
     await fetch("/api/admin/logout", { method: "POST" });
-    router.replace("/admin/login");
+    router.replace(adminLoginPath());
     router.refresh();
   }
 
