@@ -1,0 +1,86 @@
+.admin-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 1rem;
+}
+.admin-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin: 1.2rem 0;
+}
+.admin-tabs button {
+  border: 1.5px solid var(--black);
+  background: transparent;
+  min-height: 40px;
+  padding: 0 0.8rem;
+  cursor: pointer;
+  font-family: var(--font-display), Impact, sans-serif;
+  letter-spacing: 0.05em;
+}
+.admin-tabs button[aria-selected="true"] {
+  background: var(--orange);
+  border-color: var(--orange);
+}
+.admin-stack { display: grid; gap: 1.2rem; max-width: 860px; }
+.admin-stack h2 {
+  font-size: 2rem;
+  text-transform: uppercase;
+  margin: 0.4rem 0 0;
+}
+.stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0.7rem; }
+.stat {
+  background: white;
+  border: 1px solid var(--line);
+  padding: 0.9rem;
+}
+.stat span {
+  font-size: 0.75rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.stat strong {
+  display: block;
+  margin-top: 0.3rem;
+  font-family: var(--font-display), Impact, sans-serif;
+  font-size: 2rem;
+  font-weight: 400;
+}
+.table-wrap { overflow-x: auto; background: white; border: 1px solid var(--line); }
+table { width: 100%; border-collapse: collapse; }
+th, td { text-align: left; padding: 0.7rem 0.8rem; border-bottom: 1px solid var(--line); }
+th { font-size: 0.75rem; letter-spacing: 0.08em; text-transform: uppercase; }
+.admin-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 0.6rem; }
+.admin-list li {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  align-items: center;
+  background: white;
+  border: 1px solid var(--line);
+  padding: 0.85rem 1rem;
+}
+.admin-media { display: flex; align-items: center; gap: 0.85rem; min-width: 0; }
+.admin-thumb, .admin-preview {
+  display: block;
+  object-fit: contain;
+  background: #f3f1ea;
+  border: 1.5px solid var(--black);
+}
+.admin-thumb { width: 120px; height: 90px; }
+.admin-preview { width: min(100%, 280px); max-height: 180px; margin-top: 0.55rem; }
+.admin-list strong { display: block; }
+.admin-list span, .admin-list p { color: var(--muted); margin: 0.15rem 0 0; }
+.admin-actions { display: flex; gap: 0.4rem; flex-wrap: wrap; }
+.field select {
+  width: 100%;
+  border: 1.5px solid var(--black);
+  background: white;
+  padding: 0.8rem 0.85rem;
+}
+.field input[type="file"] { padding: 0.55rem; background: white; }
+@media (max-width: 800px) {
+  .stats { grid-template-columns: 1fr 1fr; }
+  .admin-list li { flex-direction: column; align-items: flex-start; }
+}
