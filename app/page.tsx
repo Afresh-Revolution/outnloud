@@ -4,6 +4,7 @@ import { SubscribeForm } from "@/components/SubscribeForm";
 import { LineupMasonry } from "@/components/LineupMasonry";
 import { listLineup, listPartners } from "@/lib/content";
 import { FESTIVAL, HIGHLIGHTS } from "@/lib/festival";
+import { LANDING_PHOTOS } from "@/lib/photos";
 import { formatTime, formatWhen, naira, plainText } from "@/lib/format";
 import { getFestivalEvent } from "@/lib/gatewav";
 
@@ -65,6 +66,18 @@ export default async function HomePage() {
           ))}
         </div>
       </div>
+      <section className="home-photos-section" aria-label="Photographs">
+        <div className="wrap">
+          <div className="home-photos">
+            {LANDING_PHOTOS.map((photo) => (
+              <figure key={photo.src}>
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={photo.src} alt={photo.alt} />
+              </figure>
+            ))}
+          </div>
+        </div>
+      </section>
       <section className="section">
         <div className="wrap grid-2">
           <div>

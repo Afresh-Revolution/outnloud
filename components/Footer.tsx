@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { Logo } from "@/components/Logo";
 import { getSettings } from "@/lib/content";
 import { FESTIVAL, NAV } from "@/lib/festival";
 import { whatsappHref } from "@/lib/format";
@@ -13,7 +14,7 @@ export async function Footer() {
       <div className="wrap footer-grid">
         <div>
           <Link href="/admin" className="footer-brand">
-            OUT N LOUD
+            <Logo />
           </Link>
           <p>{FESTIVAL.manifesto}</p>
           <p>

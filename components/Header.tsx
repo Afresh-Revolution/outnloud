@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
+import { Logo } from "@/components/Logo";
 import { NAV } from "@/lib/festival";
 
 export function Header() {
@@ -13,9 +14,7 @@ export function Header() {
     <header className="header">
       <div className="wrap header-inner">
         <Link href="/" className="brand" onClick={() => setOpen(false)}>
-          <strong>OUT</strong>
-          <em>n</em>
-          <strong>LOUD</strong>
+          <Logo />
         </Link>
         <button
           type="button"
