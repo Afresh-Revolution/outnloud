@@ -70,7 +70,7 @@ export function TicketPicker({
                 <p className="kicker">Admit one</p>
                 <h3>{ticket.name}</h3>
                 {ticket.description && <p>{ticket.description}</p>}
-                <p>{soldOut ? "Sold out" : `${ticket.available} left`}</p>
+                {soldOut && <p>Sold out</p>}
               </div>
               <div>
                 <div className="price">{ticket.price === 0 ? "Free" : naira(ticket.price)}</div>

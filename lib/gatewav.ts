@@ -122,7 +122,7 @@ async function gatewavFetch(path: string, init?: RequestInit): Promise<Response>
   return fetch(`${apiBase()}${path}`, {
     ...init,
     cache: "no-store",
-    signal: AbortSignal.timeout(25000),
+    signal: init?.signal ?? AbortSignal.timeout(25000),
     headers: {
       Accept: "application/json",
       ...(init?.body ? { "Content-Type": "application/json" } : {}),
@@ -137,9 +137,14 @@ async function readJson(res: Response): Promise<RawRecord> {
 }
 
 export async function getFestivalEvent(): Promise<FestivalEvent | null> {
-  const res = await gatewavFetch("/api/events/5cf954ff-473e-40a9-a02f-9a89d861e5e8");
-  if (!res.ok) return null;
-  return normalizeEvent(await res.json());
+  const res = await gatewavFetch("/api/events/5cf954ff-473e-40a9-a02f-9a89d861e5e8", {
+    // Allow the event service time to wake up after being idle.
+    signal: AbortSignal.timeout(55000),
+  });
+  if (!res.ok) throw new Error(`Gatewav event request failed (${res.status})`);
+  const event = normalizeEvent(await res.json());
+  if (!event) throw new Error("Gatewav returned an invalid event");
+  return event;
 }
 
 export type OrderItemInput = {
@@ -258,6 +263,33 @@ export async function startPaystack(input: {
   const url = text(data.authorizationUrl) || text(data.authorization_url);
   if (!url) throw new Error("Payment did not return a checkout link.");
   return url;
+}
+
+export async function getManualPaymentDetails() {
+  const res = await gatewavFetch("/api/orders/manual-payment-details");
+  const data = await readJson(res);
+  if (!res.ok) throw new Error("Could not load bank transfer details. Please try again.");
+  const details = {
+    accountName: text(data.accountName ?? data.account_name),
+    accountNumber: text(data.accountNumber ?? data.account_number),
+    bankName: text(data.bankName ?? data.bank_name),
+  };
+  if (!details.accountName || !details.accountNumber || !details.bankName) {
+    throw new Error("Bank transfer is currently unavailable. Please try again later.");
+  }
+  return details;
+}
+
+export async function notifyManualPayment(orderId: string, email: string): Promise<boolean> {
+  try {
+    const res = await gatewavFetch("/api/orders/manual-payment-notify", {
+      method: "POST",
+      body: JSON.stringify({ orderId, email }),
+    });
+    return res.ok;
+  } catch {
+    return false;
+  }
 }
 
 export async function previewCoupon(eventId: string, code: string, totalAmount: number) {

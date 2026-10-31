@@ -31,6 +31,26 @@ export function CheckoutForm({ onSale }: { onSale: boolean }) {
   const [couponNote, setCouponNote] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [paymentMethod, setPaymentMethod] = useState("paystack");
+  const [bankDetails, setBankDetails] = useState<{ accountName: string; accountNumber: string; bankName: string } | null>(null);
+  const [bankLoading, setBankLoading] = useState(false);
+  const [pendingOrder, setPendingOrder] = useState<{ id: string; notified: boolean } | null>(null);
+
+  async function useBankTransfer() {
+    setPaymentMethod("manual");
+    setBankLoading(true);
+    setError("");
+    try {
+      const res = await fetch("/api/checkout");
+      const body = await res.json();
+      if (!res.ok) throw new Error(body.error || "Could not load bank details.");
+      setBankDetails(body);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Could not load bank details.");
+    } finally {
+      setBankLoading(false);
+    }
+  }
 
   useEffect(() => {
     try {
@@ -89,6 +109,8 @@ export function CheckoutForm({ onSale }: { onSale: boolean }) {
           email: data.get("email"),
           phone: data.get("phone"),
           couponCode: appliedCode,
+          paymentMethod: payable === 0 ? "paystack" : paymentMethod,
+          transferConfirmed: data.get("transferConfirmed") === "on",
           items: selection.items.map((item) => ({
             ticketTypeId: item.ticketTypeId,
             quantity: item.quantity,
@@ -97,11 +119,17 @@ export function CheckoutForm({ onSale }: { onSale: boolean }) {
       });
       const body = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(body.error || "Checkout failed.");
+      if (body.pending && body.orderId) {
+        setPendingOrder({ id: body.orderId, notified: body.notified });
+        sessionStorage.removeItem(CHECKOUT_KEY);
+        setLoading(false);
+        return;
+      }
       if (body.authorizationUrl) {
         window.location.assign(body.authorizationUrl);
         return;
       }
-      if (body.orderId) {
+      if (body.orderId && body.free) {
         window.location.assign(`/tickets/confirmed?orderId=${encodeURIComponent(body.orderId)}&free=1`);
         return;
       }
@@ -113,6 +141,14 @@ export function CheckoutForm({ onSale }: { onSale: boolean }) {
   }
 
   if (!ready) return <PageLoader label="Finding your tickets" />;
+  if (pendingOrder) {
+    return <div className="notice" role="status">
+      <h2>Transfer awaiting confirmation</h2>
+      <p>Your ticket request has been saved. Gatewav will review your transfer and email your QR ticket after confirming payment.</p>
+      <p>Order reference: {pendingOrder.id}</p>
+      {!pendingOrder.notified && <p>The automatic notice could not be sent, but your request is saved for the team to review. Please do not submit it again.</p>}
+    </div>;
+  }
   if (!onSale) {
     return <p className="notice">Tickets are not on sale yet.</p>;
   }
@@ -170,11 +206,23 @@ export function CheckoutForm({ onSale }: { onSale: boolean }) {
         {couponNote && <p>{couponNote}</p>}
       </div>
       {error && <Flash message={error} tone="error" onDone={() => setError("")} />}
-      <button className="btn" type="submit" disabled={loading}>
-        {loading ? "STARTING PAYMENT" : payable === 0 ? "GET TICKET" : "PAY NOW"}
+      {payable > 0 && <div className="panel">
+        <p className="kicker">Payment method</p>
+        <button className="btn secondary" type="button" disabled={loading || bankLoading} aria-pressed={paymentMethod === "paystack"} onClick={() => setPaymentMethod("paystack")}>PAYSTACK</button>{" "}
+        <button className="btn secondary" type="button" disabled={loading || bankLoading} aria-pressed={paymentMethod === "manual"} onClick={useBankTransfer}>BANK TRANSFER</button>
+        <p>If Paystack fails, choose bank transfer. Transfers are reviewed by Gatewav before tickets are issued.</p>
+        {paymentMethod === "manual" && (bankLoading ? <p>Loading bank details…</p> : bankDetails ? <div>
+          <p>Transfer <strong>{naira(payable)}</strong> to:</p>
+          <p>Bank: <strong>{bankDetails.bankName}</strong><br />Account name: <strong>{bankDetails.accountName}</strong><br />Account number: <strong>{bankDetails.accountNumber}</strong></p>
+          <p>Use your full name as the transfer description and keep your receipt.</p>
+          <label><input type="checkbox" name="transferConfirmed" required /> I have transferred the amount shown above.</label>
+        </div> : <p>Bank details could not be loaded. Select Bank Transfer to retry.</p>)}
+      </div>}
+      <button className="btn" type="submit" disabled={loading || bankLoading || (payable > 0 && paymentMethod === "manual" && !bankDetails)}>
+        {loading ? "PROCESSING" : payable === 0 ? "GET TICKET" : paymentMethod === "manual" ? "SUBMIT TRANSFER FOR REVIEW" : "PAY WITH PAYSTACK"}
       </button>
       <p className="lede">
-        Payment opens on Paystack, then brings you straight back here. Your QR ticket is emailed after the payment is confirmed.
+        Your QR ticket is emailed after payment is confirmed. Paystack returns you here after payment; bank transfers require manual review.
       </p>
     </form>
   );

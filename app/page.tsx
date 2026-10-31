@@ -9,13 +9,16 @@ import { formatTime, formatWhen, naira, plainText } from "@/lib/format";
 import { getFestivalEvent } from "@/lib/gatewav";
 
 export const dynamic = "force-dynamic";
+export const maxDuration = 60;
 
 export default async function HomePage() {
   let event = null;
+  let eventLoadFailed = false;
   try {
     event = await getFestivalEvent();
-  } catch {
-    event = null;
+  } catch (error) {
+    eventLoadFailed = true;
+    console.error("Unable to load festival tickets", error);
   }
   const [acts, partners] = await Promise.all([listLineup(), listPartners()]);
   const startsAt = event?.date || FESTIVAL.startsAt;
@@ -130,7 +133,7 @@ export default async function HomePage() {
                 <article className="stub" key={ticket.id}>
                   <div>
                     <h3>{ticket.name}</h3>
-                    <p>{plainText(ticket.description) || `${ticket.available} available`}</p>
+                    {plainText(ticket.description) && <p>{plainText(ticket.description)}</p>}
                   </div>
                   <div className="price">{ticket.price === 0 ? "Free" : naira(ticket.price)}</div>
                 </article>
@@ -138,10 +141,13 @@ export default async function HomePage() {
             ) : (
               <article className="stub">
                 <div>
-                  <h3>On sale soon</h3>
-                  <p>Tiers appear here as soon as the event is open in the ticketing system.</p>
+                  <h3>{eventLoadFailed ? "Tickets temporarily unavailable" : "On sale soon"}</h3>
+                  <p>{eventLoadFailed ? "We couldn't load ticket tiers. Refresh or select See Tickets to try again." : "Tiers appear here as soon as the event is open in the ticketing system."}</p>
                 </div>
               </article>
+            )}
+            {event && event.tickets.length > 3 && (
+              <span className="road-sign" style={{ justifySelf: "start" }}>And more ticket options</span>
             )}
             <Link className="btn" href="/tickets">
               SEE TICKETS

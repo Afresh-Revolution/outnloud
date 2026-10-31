@@ -5,22 +5,41 @@ import {
   prepareOrder,
   siteOrigin,
   startPaystack,
+  getManualPaymentDetails,
+  notifyManualPayment,
 } from "@/lib/gatewav";
 import { isEmail } from "@/lib/format";
 
 export const runtime = "nodejs";
+export const maxDuration = 120;
+
+export async function GET() {
+  try {
+    return NextResponse.json(await getManualPaymentDetails(), { headers: { "Cache-Control": "no-store" } });
+  } catch (error) {
+    return NextResponse.json({ error: error instanceof Error ? error.message : "Could not load bank details." }, { status: 502 });
+  }
+}
 
 type Body = {
   fullName?: string;
   email?: string;
   phone?: string;
   couponCode?: string;
+  paymentMethod?: string;
+  transferConfirmed?: boolean;
   items?: Array<{ ticketTypeId?: string; quantity?: number }>;
 };
 
 export async function POST(req: Request) {
   try {
     const body = (await req.json()) as Body;
+    if (body.paymentMethod && !["paystack", "manual"].includes(body.paymentMethod)) {
+      return NextResponse.json({ error: "Choose a supported payment method." }, { status: 400 });
+    }
+    if (body.paymentMethod === "manual" && body.transferConfirmed !== true) {
+      return NextResponse.json({ error: "Confirm you have made the transfer first." }, { status: 400 });
+    }
     const fullName = String(body.fullName ?? "").trim();
     const email = String(body.email ?? "").trim().toLowerCase();
     const phone = String(body.phone ?? "").trim();
@@ -45,7 +64,7 @@ export async function POST(req: Request) {
       })),
     );
 
-    const paymentMethod = prepared.totalAmount >= 1 ? "paystack" : "manual";
+    const paymentMethod = prepared.totalAmount >= 1 && body.paymentMethod !== "manual" ? "paystack" : "manual";
     const order = await createGatewavOrder({
       prepared,
       fullName,
@@ -57,6 +76,11 @@ export async function POST(req: Request) {
 
     if (order.totalAmount < 1) {
       return NextResponse.json({ orderId: order.id, free: true });
+    }
+
+    if (paymentMethod === "manual") {
+      const notified = await notifyManualPayment(order.id, email);
+      return NextResponse.json({ orderId: order.id, pending: true, notified });
     }
 
     const callbackUrl = `${siteOrigin(req)}/tickets/confirmed?orderId=${encodeURIComponent(order.id)}`;

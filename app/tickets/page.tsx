@@ -7,6 +7,7 @@ import { getFestivalEvent } from "@/lib/gatewav";
 
 export const metadata: Metadata = { title: "Tickets" };
 export const dynamic = "force-dynamic";
+export const maxDuration = 60;
 
 export default async function TicketsPage() {
   let event = null;
@@ -26,7 +27,7 @@ export default async function TicketsPage() {
           </p>
           <h1>Tickets</h1>
           <p className="lede">
-            Pick a tier and pay on this page. Paystack takes the payment, then you return here. The QR ticket is emailed to you and scanned at the gate.
+            Pick a tier and pay with Paystack or bank transfer. Your QR ticket is emailed after payment is confirmed and scanned at the gate. Bank transfers require manual review.
           </p>
         </div>
       </section>
