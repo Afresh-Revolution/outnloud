@@ -13,6 +13,7 @@ type CheckoutItem = {
   quantity: number;
   unitPrice: number;
   lineTotal: number;
+  
 };
 
 type Selection = {
