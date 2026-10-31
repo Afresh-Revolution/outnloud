@@ -137,23 +137,9 @@ async function readJson(res: Response): Promise<RawRecord> {
 }
 
 export async function getFestivalEvent(): Promise<FestivalEvent | null> {
-  const configured = process.env.GATEWAV_EVENT_ID?.trim();
-  if (configured) {
-    const res = await gatewavFetch(`/api/events/${encodeURIComponent(configured)}`);
-    if (!res.ok) return null;
-    return normalizeEvent(await res.json());
-  }
-
-  const res = await gatewavFetch("/api/events?take=100");
+  const res = await gatewavFetch("/api/events/5cf954ff-473e-40a9-a02f-9a89d861e5e8");
   if (!res.ok) return null;
-  const data = await res.json();
-  const list = Array.isArray(data) ? data : [];
-  const match = list.find((item) => /out\s*n\s*loud/i.test(text(asRecord(item)?.title)));
-  const id = text(asRecord(match)?.id);
-  if (!id) return null;
-  const detail = await gatewavFetch(`/api/events/${encodeURIComponent(id)}`);
-  if (!detail.ok) return normalizeEvent(match);
-  return normalizeEvent(await detail.json());
+  return normalizeEvent(await res.json());
 }
 
 export type OrderItemInput = {
