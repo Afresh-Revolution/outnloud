@@ -39,7 +39,7 @@ export type FestivalEvent = {
 type RawRecord = Record<string, unknown>;
 
 function apiBase(): string {
-  return (process.env.GATEWAV_API_URL || "https://ticketing-back.onrender.com").replace(/\/$/, "");
+  return "https://ticketing-back.onrender.com";
 }
 
 function asRecord(value: unknown): RawRecord | null {

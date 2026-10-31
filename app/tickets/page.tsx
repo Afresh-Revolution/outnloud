@@ -14,8 +14,9 @@ export default async function TicketsPage() {
   let loadError = "";
   try {
     event = await getFestivalEvent();
-  } catch {
-    loadError = "The ticket system is waking up. Refresh in a moment.";
+  } catch (error) {
+    console.error("Unable to load festival tickets", error);
+    loadError = "We couldn't load tickets. Please refresh and try again.";
   }
 
   return (
